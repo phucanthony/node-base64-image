@@ -23,9 +23,25 @@ build/Release
 # Commenting this out is preferred by some people, see
 # https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git-
 node_modules
-bower_components
-coverage
+bower_components\
 tmp
+
+!dist
+src
+
+# Dot files
+.hound.yml
+.travis.yml
+.appveyor.yml
+.editorconfig
+.flowconfig
+.eslintrc
+.babelrc
+
+# Gulp file
+gulpfile.bable.js
 
 # Users Environment Variables
 .lock-wscript
+
+test.jpg

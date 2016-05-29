@@ -29,5 +29,5 @@ node_modules
 .lock-wscript
 
 test.jpg
-
+dist
 .github
