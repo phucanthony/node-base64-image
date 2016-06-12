@@ -13,18 +13,36 @@ import {readFile as read, writeFile as write} from 'fs';
 type Callback<T> = (err: ?Error, x?: T) => void;
 
 /**
- *  Encodes a remote or local image to Base64 encoded string or Buffer
+ * Encodes a remote or local image to Base64 encoded string or Buffer
  *
- *  @name encode
- *  @param {string} url - URL of remote image or local path to image
- *  @param {Object} [options={}] - Options object for extra configuration
- *  @param {boolean} options.string - Returns a Base64 encoded string. Defaults to Buffer object
- *  @param {boolean} options.local - Encode a local image file instead of a remote image
- *  @param {fnCallback} callback - Callback function
- *  @todo Option to wrap string every 76 characters for strings larger than 76 characters
- *  @return {fnCallback} - Returns the callback
+ * @name encode
+ * @param {string} url - URL of remote image or local path to image
+ * @param {Object} [options={}] - Options object for extra configuration
+ * @param {boolean} options.string - Returns a Base64 encoded string. Defaults to Buffer object
+ * @param {boolean} options.local - Encode a local image file instead of a remote image
+ * @param {(boolean|number)} options.wrap - Wrap encoded string at 76 chars or the length specified
+ * @param {fnCallback} callback - Callback function
+ * @example <caption>Example 1 - Return Base64 encoded string of a remote image</caption>
+ * var base64 = require('node-base64-image');
+ * base64.encode('https://me.com/rg1kxkgxayhdgoqdaejz.jpg', {string: true}, function (err, data) {
+ *    if (err) {
+ *        // handle error
+ *    }
+ *
+ *    console.log(data);
+ * });
+ * @example <caption>Example 2 - Return Buffer object of a remote image</caption>
+ * var base64 = require('node-base64-image');
+ * base64.encode('https://me.com/rg1kxkgxayhdgoqdaejz.jpg', {}, function (err, data) {
+ *    if (err) {
+ *        // handle error
+ *    }
+ *
+ *    console.log(data instanceof Buffer); // true
+ * });
+ * @return {fnCallback} - Returns the callback
  */
-export function encode(url: string, options: Object = {string: false, local: false}, callback: Callback<mixed>) { // eslint-disable-line
+export function encode(url: string, options: Object = {string: false, local: false, wrap: false}, callback: Callback<mixed>) { // eslint-disable-line
   if (_.isUndefined(url) || _.isNull(url) || !_.isString(url)) {
     return callback(new Error('URL is undefined or not properly formatted'));
   }
@@ -65,21 +83,34 @@ export function encode(url: string, options: Object = {string: false, local: fal
 }
 
 /**
- *  Decodes an base64 encoded image buffer and saves it to disk
+ *  Checks to see if a string is Base64 encoded data string
  *
- *  @name decode
- *  @param {Buffer} imageBuffer - Image Buffer object
- *  @param {Object} [options={}] - Options object for extra configuration
- *  @param {string} options.filename - Filename for the final image file
- *  @param {fnCallback} callback - Callback function
- *  @return {fnCallback} - Returns the callback
+ *  @name isDataURL
+ *  @private
+ *  @param  {string}  str - Base64 encoded data string
+ *  @return {Boolean} - Returns true if encoded data string. Otherwise false.
  */
-export function decode(imageBuffer: any, options: Object = {filename: 'saved-image'}, callback: Callback<mixed>) { // eslint-disable-line
-  if (!_.isBuffer(imageBuffer)) {
-    return callback(new Error('The image is not a Buffer object type'));
+function isDataURL(str: string): boolean {
+	var isDataURLRegex = /^\s*data:([a-z]+\/[a-z0-9\-\+]+(;[a-z\-]+\=[a-z0-9\-]+)?)?(;base64)?,[a-z0-9\!\$\&\'\,\(\)\*\+\,\;\=\-\.\_\~\:\@\/\?\%\s]*\s*$/i; // eslint-disable-line
+  return !!str.match(isDataURLRegex);
+}
+
+/**
+ * Decodes an base64 encoded image buffer and saves it to disk
+ *
+ * @name decode
+ * @param {(Buffer|string)} image - Image Buffer object or Base64 encoded string
+ * @param {Object} [options={}] - Options object for extra configuration
+ * @param {string} options.filename - Filename for the final image file
+ * @param {fnCallback} callback - Callback function
+ * @return {fnCallback} - Returns the callback
+ */
+export function decode(image: any, options: Object = {filename: 'saved-image'}, callback: Callback<mixed>) { // eslint-disable-line
+  if (!_.isBuffer(image) || (!_.isString(image) && !isDataURL(image))) {
+    return callback(new Error('The image is not a Buffer object or Base 64 encoded data string'));
   }
 
-  write(options.filename + '.jpg', imageBuffer, 'base64', (err) => {
+  write(options.filename + '.jpg', image, 'base64', (err) => {
     if (err) {
       return callback(err);
     }
