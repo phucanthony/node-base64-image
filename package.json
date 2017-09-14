@@ -34,6 +34,7 @@
   },
   "homepage": "http://riyadhalnur.github.io/node-base64-image/",
   "devDependencies": {
+    "fs": "^0.0.1-security",
     "babel-cli": "6.9.0",
     "babel-core": "^6.3.26",
     "babel-eslint": "6.0.4",
